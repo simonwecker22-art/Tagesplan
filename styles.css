@@ -23,9 +23,9 @@ body {
 .board {
   height: 100dvh;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 1.5vh;
-  padding: 2.2vh 3.4vw 1.3vh;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 1.15vh;
+  padding: 1.8vh 3.4vw 1vh;
 }
 
 .topbar { display: flex; justify-content: space-between; align-items: center; }
@@ -33,33 +33,53 @@ body {
 .date { margin-top: .5vh; font-size: clamp(18px, 2.7vh, 28px); color: var(--muted); }
 .clock { font-size: clamp(42px, 7vh, 74px); font-weight: 800; letter-spacing: -.04em; }
 
-.meals { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2vw; }
+.day-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5vw;
+  max-width: 430px;
+  padding: .35vh;
+  background: rgba(255,255,255,.58);
+  border-radius: 18px;
+}
+.day-button {
+  min-height: 5.2vh;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: clamp(18px, 2.5vh, 26px);
+  font-weight: 800;
+}
+.day-button.active { background: var(--sage-strong); color: #fff; box-shadow: 0 3px 10px rgba(47,112,84,.2); }
+
+.meals { display: grid; grid-template-columns: minmax(0, 1fr); }
 .meal-card {
-  min-height: 11vh;
+  min-height: 9.5vh;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 1.8vw;
-  padding: 1.2vh 2vw;
+  padding: 1vh 2vw;
   border-radius: 22px;
   box-shadow: 0 5px 18px rgba(55, 45, 31, .08);
 }
 .lunch { background: var(--peach); }
-.dinner { background: var(--sage); }
 .meal-icon { font-size: clamp(32px, 5vh, 54px); }
 .meal-label { font-size: clamp(15px, 2vh, 21px); font-weight: 700; color: var(--muted); }
 .meal-title { font-size: clamp(20px, 3vh, 31px); font-weight: 800; line-height: 1.15; }
 
 .schedule { min-height: 0; display: grid; grid-template-rows: auto 1fr; }
-h1 { margin: 0 0 .7vh; font-size: clamp(22px, 3.3vh, 34px); }
+h1 { margin: 0 0 .55vh; font-size: clamp(23px, 3.4vh, 36px); }
 .activities { min-height: 0; display: grid; gap: .75vh; }
 .activity {
   min-height: 0;
   display: grid;
-  grid-template-columns: 5.7em 1fr auto;
+  grid-template-columns: clamp(58px, 9vw, 90px) 1fr clamp(118px, 18vw, 175px);
   align-items: center;
   gap: 1.7vw;
-  padding: .7vh 1.8vw;
+  padding: .65vh 1.7vw;
   background: var(--card);
   border: 2px solid transparent;
   border-radius: 18px;
@@ -71,10 +91,23 @@ h1 { margin: 0 0 .7vh; font-size: clamp(22px, 3.3vh, 34px); }
   border-color: var(--sage-strong);
   box-shadow: 0 6px 18px rgba(47, 112, 84, .18);
 }
-.time { font-size: clamp(19px, 2.7vh, 28px); font-weight: 800; color: var(--sage-strong); }
-.activity-title { font-size: clamp(21px, 3vh, 31px); font-weight: 800; line-height: 1.08; }
+.time { text-align: right; font-size: clamp(27px, 4.2vh, 44px); font-weight: 900; line-height: .98; color: var(--sage-strong); }
+.time small { display: block; margin-top: .18em; font-size: .55em; color: var(--muted); }
+.activity-title { font-size: clamp(20px, 2.9vh, 31px); font-weight: 900; line-height: 1.08; text-transform: uppercase; }
 .detail { font-size: clamp(14px, 1.9vh, 20px); color: var(--muted); margin-top: .2vh; }
-.activity-icon { font-size: clamp(27px, 4vh, 42px); }
+.activity-avatar {
+  width: clamp(54px, 8vw, 82px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--sage-strong);
+  font-size: clamp(24px, 3.5vh, 38px);
+  font-weight: 900;
+}
+.activity-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .now-label { display: inline-block; margin-left: .5em; padding: .15em .45em; border-radius: 999px; background: var(--sage-strong); color: white; font-size: .55em; vertical-align: .18em; }
 .empty { display: grid; place-items: center; color: var(--muted); background: var(--card); border-radius: 18px; font-size: clamp(22px, 3vh, 32px); }
 .status { min-height: 1.2em; text-align: right; color: var(--muted); font-size: 12px; opacity: .72; }
@@ -82,13 +115,14 @@ h1 { margin: 0 0 .7vh; font-size: clamp(22px, 3.3vh, 34px); }
 @media (max-width: 650px) {
   .board { padding-left: 3vw; padding-right: 3vw; }
   .meal-card { border-radius: 16px; }
-  .activity { grid-template-columns: 5.2em 1fr auto; border-radius: 15px; }
+  .activity { grid-template-columns: 58px 1fr 118px; border-radius: 15px; }
 }
 
 @media (orientation: landscape) {
-  .board { grid-template-columns: 37% 1fr; grid-template-rows: auto 1fr auto; }
+  .board { grid-template-columns: 37% 1fr; grid-template-rows: auto auto 1fr auto; }
   .topbar { grid-column: 1 / -1; }
+  .day-switch { grid-column: 1; }
   .meals { grid-template-columns: 1fr; align-content: start; }
-  .schedule { grid-column: 2; grid-row: 2; }
+  .schedule { grid-column: 2; grid-row: 2 / 4; }
   .status { grid-column: 1 / -1; }
 }

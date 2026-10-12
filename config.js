@@ -5,5 +5,13 @@ window.TAGESPLAN_CONFIG = {
   exceptionsGid: "218473505",
   refreshMinutes: 3,
   locale: "de-AT",
-  timeZone: "Europe/Vienna"
+  timeZone: "Europe/Vienna",
+  personImages: {
+    Maria: "",
+    Peter: "",
+    Christine: "",
+    Sarah: "",
+    Karin: "",
+    Mutter: ""
+  }
 };

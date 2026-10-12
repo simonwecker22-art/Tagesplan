@@ -17,19 +17,20 @@
       <div id="clock" class="clock">--:--</div>
     </header>
 
-    <section class="meals" aria-label="Essen">
+    <nav class="day-switch" aria-label="Tag auswählen">
+      <button id="today-button" class="day-button active" type="button">Heute</button>
+      <button id="tomorrow-button" class="day-button" type="button"><span aria-hidden="true">▣</span> Morgen</button>
+    </nav>
+
+    <section class="meals" aria-label="Mittagessen">
       <article class="meal-card lunch">
         <div id="lunch-icon" class="meal-icon" aria-hidden="true">🍲</div>
         <div><div class="meal-label">Mittagessen</div><div id="lunch" class="meal-title">Noch nicht eingetragen</div></div>
       </article>
-      <article class="meal-card dinner">
-        <div id="dinner-icon" class="meal-icon" aria-hidden="true">🥣</div>
-        <div><div class="meal-label">Abendessen</div><div id="dinner" class="meal-title">Noch nicht eingetragen</div></div>
-      </article>
     </section>
 
     <section class="schedule" aria-label="Tagesaktivitäten">
-      <h1>Mein Tag</h1>
+      <h1>Maria Isoldes Tagesplan</h1>
       <div id="activities" class="activities"></div>
     </section>
 

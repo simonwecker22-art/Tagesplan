@@ -19,6 +19,7 @@
 
   const el = id => document.getElementById(id);
   let currentData = { weekly: [], exceptions: [] };
+  let selectedDayOffset = 0;
 
   function csvUrl(gid) {
     return `https://docs.google.com/spreadsheets/d/e/${encodeURIComponent(cfg.publishedId)}/pub?output=csv&gid=${encodeURIComponent(gid)}&_=${Date.now()}`;
@@ -89,10 +90,15 @@
     }
   }
 
-  function buildDay() {
-    const now = new Date();
-    const date = todayKey(now);
-    const weekday = WEEKDAYS[now.getDay()];
+  function selectedDate() {
+    const d = new Date();
+    d.setDate(d.getDate() + selectedDayOffset);
+    return d;
+  }
+
+  function buildDay(targetDate) {
+    const date = todayKey(targetDate);
+    const weekday = new Intl.DateTimeFormat("de-DE", { timeZone: cfg.timeZone || "Europe/Vienna", weekday: "long" }).format(targetDate);
     const weekly = currentData.weekly.filter(r => truthy(r.aktiv) && String(r.wochentag).toLowerCase() === weekday.toLowerCase());
     const exceptions = currentData.exceptions.filter(r => truthy(r.aktiv) && String(r.datum).slice(0, 10) === date);
 
@@ -112,45 +118,74 @@
       else activities.push(ex);
     }
     activities.sort((a, b) => mins(a.start) - mins(b.start));
-    return { lunch: meal("mittagessen", "🍲"), dinner: meal("abendessen", "🥣"), activities };
+    return { lunch: meal("mittagessen", "🍲"), activities };
+  }
+
+  function personName(title) {
+    const names = Object.keys(cfg.personImages || {});
+    return names.find(name => normalizeHeader(title).includes(normalizeHeader(name))) || "";
+  }
+
+  function imageUrl(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const driveId = raw.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
+    if (driveId) return `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`;
+    return /^https:\/\//i.test(raw) ? raw : "";
+  }
+
+  function spokenTitle(activity) {
+    const person = personName(activity.titel || "");
+    if (person && /ist da|kommt|bleibt/i.test(activity.titel || "")) {
+      return `${selectedDayOffset ? "Morgen" : "Heute"} kommt ${person} um ${activity.start}`;
+    }
+    return activity.titel || "Aktivität";
   }
 
   function render() {
     const now = new Date();
-    const weekday = WEEKDAYS[now.getDay()];
+    const targetDate = selectedDate();
+    const weekday = new Intl.DateTimeFormat("de-DE", { timeZone: cfg.timeZone || "Europe/Vienna", weekday: "long" }).format(targetDate);
     el("weekday").textContent = weekday;
-    el("date").textContent = new Intl.DateTimeFormat(cfg.locale || "de-AT", { timeZone: cfg.timeZone || "Europe/Vienna", day: "2-digit", month: "long", year: "numeric" }).format(now);
+    el("date").textContent = new Intl.DateTimeFormat(cfg.locale || "de-AT", { timeZone: cfg.timeZone || "Europe/Vienna", day: "2-digit", month: "long", year: "numeric" }).format(targetDate);
     el("clock").textContent = new Intl.DateTimeFormat("de-DE", { timeZone: cfg.timeZone || "Europe/Vienna", hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
 
-    const day = buildDay();
+    const day = buildDay(targetDate);
     el("lunch").textContent = day.lunch.title;
     el("lunch-icon").textContent = day.lunch.icon;
-    el("dinner").textContent = day.dinner.title;
-    el("dinner-icon").textContent = day.dinner.icon;
+    el("today-button").classList.toggle("active", selectedDayOffset === 0);
+    el("tomorrow-button").classList.toggle("active", selectedDayOffset === 1);
 
     const host = el("activities");
     host.replaceChildren();
     if (!day.activities.length) {
-      const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "Heute ist nichts eingetragen."; host.appendChild(empty); return;
+      const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = `${selectedDayOffset ? "Morgen" : "Heute"} ist nichts eingetragen.`; host.appendChild(empty); return;
     }
     host.style.gridTemplateRows = `repeat(${day.activities.length}, minmax(0, 1fr))`;
     const nowMins = localParts(now).minutes;
     day.activities.slice(0, 8).forEach(a => {
-      const isCurrent = mins(a.start) <= nowMins && nowMins < mins(a.ende);
+      const isCurrent = selectedDayOffset === 0 && mins(a.start) <= nowMins && nowMins < mins(a.ende);
       const card = document.createElement("article"); card.className = `activity${isCurrent ? " current" : ""}`;
-      const time = document.createElement("div"); time.className = "time"; time.textContent = a.start && a.ende ? `${a.start}–${a.ende}` : (a.start || "");
+      const avatar = document.createElement("div"); avatar.className = "activity-avatar";
+      const person = personName(a.titel || "");
+      const imagePath = imageUrl(a.bild) || (person && cfg.personImages?.[person]);
+      if (imagePath) { const img = document.createElement("img"); img.src = imagePath; img.alt = person; avatar.appendChild(img); }
+      else avatar.textContent = person ? person.charAt(0).toUpperCase() : "•";
       const text = document.createElement("div");
-      const title = document.createElement("div"); title.className = "activity-title"; title.textContent = a.titel || "Aktivität";
+      const title = document.createElement("div"); title.className = "activity-title"; title.textContent = spokenTitle(a);
       if (isCurrent) { const badge = document.createElement("span"); badge.className = "now-label"; badge.textContent = "JETZT"; title.appendChild(badge); }
       text.appendChild(title);
       if (a.zusatz) { const detail = document.createElement("div"); detail.className = "detail"; detail.textContent = a.zusatz; text.appendChild(detail); }
-      const icon = document.createElement("div"); icon.className = "activity-icon"; icon.textContent = a.symbol || "";
-      card.append(time, text, icon); host.appendChild(card);
+      const time = document.createElement("div"); time.className = "time"; time.textContent = a.start || "";
+      if (a.ende) { const end = document.createElement("small"); end.textContent = `bis ${a.ende}`; time.appendChild(end); }
+      card.append(avatar, text, time); host.appendChild(card);
     });
   }
 
   document.addEventListener("contextmenu", e => e.preventDefault());
   document.addEventListener("dragstart", e => e.preventDefault());
+  el("today-button").addEventListener("click", () => { selectedDayOffset = 0; render(); });
+  el("tomorrow-button").addEventListener("click", () => { selectedDayOffset = 1; render(); });
   loadData();
   setInterval(render, 30_000);
   setInterval(loadData, Math.max(1, Number(cfg.refreshMinutes) || 3) * 60_000);
