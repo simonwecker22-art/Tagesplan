@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6efe3">
+  <title>Tagesplan</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="board" aria-live="polite">
+    <header class="topbar">
+      <div>
+        <div id="weekday" class="weekday">Heute</div>
+        <div id="date" class="date">Datum</div>
+      </div>
+      <div id="clock" class="clock">--:--</div>
+    </header>
+
+    <section class="meals" aria-label="Essen">
+      <article class="meal-card lunch">
+        <div id="lunch-icon" class="meal-icon" aria-hidden="true">🍲</div>
+        <div><div class="meal-label">Mittagessen</div><div id="lunch" class="meal-title">Noch nicht eingetragen</div></div>
+      </article>
+      <article class="meal-card dinner">
+        <div id="dinner-icon" class="meal-icon" aria-hidden="true">🥣</div>
+        <div><div class="meal-label">Abendessen</div><div id="dinner" class="meal-title">Noch nicht eingetragen</div></div>
+      </article>
+    </section>
+
+    <section class="schedule" aria-label="Tagesaktivitäten">
+      <h1>Mein Tag</h1>
+      <div id="activities" class="activities"></div>
+    </section>
+
+    <div id="status" class="status" aria-live="polite"></div>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
